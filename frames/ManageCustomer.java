@@ -22,6 +22,7 @@ public class ManageCustomer extends JFrame {
         this.setSize(1000, 640);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
+        this.setResizable(true);
         this.currUser = user;
 
         // Main Layout
@@ -51,7 +52,6 @@ public class ManageCustomer extends JFrame {
 
         // --- Left Sidebar Form ---
         UIStyle.CardPanel formCard = new UIStyle.CardPanel();
-        formCard.setPreferredSize(new Dimension(320, 0));
         formCard.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 4, 6, 4);
@@ -66,7 +66,7 @@ public class ManageCustomer extends JFrame {
 
         gbc.insets = new Insets(6, 4, 6, 4);
 
-        // Client ID Field
+        // Client ID Field (Allows letters/alphanumeric strings, e.g. C001)
         JPanel pId = new JPanel(new BorderLayout(0, 4));
         pId.setOpaque(false);
         pId.add(UIStyle.createFieldLabel("Client ID"), BorderLayout.NORTH);
@@ -84,7 +84,7 @@ public class ManageCustomer extends JFrame {
         gbc.gridy = 2;
         formCard.add(pName, gbc);
 
-        // Phone Field
+        // Phone Field (Strictly numeric)
         JPanel pPh = new JPanel(new BorderLayout(0, 4));
         pPh.setOpaque(false);
         pPh.add(UIStyle.createFieldLabel("Phone Number"), BorderLayout.NORTH);
@@ -102,7 +102,7 @@ public class ManageCustomer extends JFrame {
         gbc.gridy = 4;
         formCard.add(pEm, gbc);
 
-        // NID Field
+        // NID Field (Allows letters/alphanumeric strings, e.g. A1234567)
         JPanel pNid = new JPanel(new BorderLayout(0, 4));
         pNid.setOpaque(false);
         pNid.add(UIStyle.createFieldLabel("NID/Passport"), BorderLayout.NORTH);
@@ -111,8 +111,8 @@ public class ManageCustomer extends JFrame {
         gbc.gridy = 5;
         formCard.add(pNid, gbc);
 
-        // Numeric Inputs Real-Time Filtering
-        KeyAdapter digitOnlyAdapter = new KeyAdapter() {
+        // Numeric Inputs Real-Time Filtering ONLY on Phone Field
+        phT.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 char c = e.getKeyChar();
@@ -120,10 +120,7 @@ public class ManageCustomer extends JFrame {
                     e.consume();
                 }
             }
-        };
-        idT.addKeyListener(digitOnlyAdapter);
-        phT.addKeyListener(digitOnlyAdapter);
-        nidT.addKeyListener(digitOnlyAdapter);
+        });
 
         // Buttons Panel (Save, Update, Delete)
         JPanel btnPanel = new JPanel(new GridLayout(2, 1, 0, 10));
@@ -147,7 +144,16 @@ public class ManageCustomer extends JFrame {
         gbc.anchor = GridBagConstraints.NORTH;
         formCard.add(btnPanel, gbc);
 
-        bodyPanel.add(formCard, BorderLayout.WEST);
+        // Wrap Left Sidebar Form in JScrollPane to prevent disappearing on minimize/resize
+        JScrollPane formScroll = new JScrollPane(formCard);
+        formScroll.setBorder(null);
+        formScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        formScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        formScroll.setOpaque(false);
+        formScroll.getViewport().setOpaque(false);
+        formScroll.setPreferredSize(new Dimension(340, 0));
+
+        bodyPanel.add(formScroll, BorderLayout.WEST);
 
         // --- Right Workspace ---
         JPanel rightPanel = new JPanel(new BorderLayout(0, 16));
@@ -201,16 +207,8 @@ public class ManageCustomer extends JFrame {
                 JOptionPane.showMessageDialog(this, "All fields are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if (!isNumeric(id)) {
-                JOptionPane.showMessageDialog(this, "Customer ID must contain only numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
             if (!isNumeric(ph)) {
                 JOptionPane.showMessageDialog(this, "Phone Number must contain only numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (!isNumeric(nid)) {
-                JOptionPane.showMessageDialog(this, "NID/Passport must contain only numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
@@ -234,16 +232,8 @@ public class ManageCustomer extends JFrame {
                 JOptionPane.showMessageDialog(this, "All fields must be filled.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if (!isNumeric(id)) {
-                JOptionPane.showMessageDialog(this, "Customer ID must contain only numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
             if (!isNumeric(ph)) {
                 JOptionPane.showMessageDialog(this, "Phone Number must contain only numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (!isNumeric(nid)) {
-                JOptionPane.showMessageDialog(this, "NID/Passport must contain only numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
@@ -260,10 +250,6 @@ public class ManageCustomer extends JFrame {
             String id = idT.getText().trim();
             if (id.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Customer ID is required to delete.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (!isNumeric(id)) {
-                JOptionPane.showMessageDialog(this, "Customer ID must contain only numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this profile?", "Confirm Delete", JOptionPane.YES_NO_OPTION);

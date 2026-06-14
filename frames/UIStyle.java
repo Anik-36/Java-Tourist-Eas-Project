@@ -29,6 +29,11 @@ public class UIStyle {
     
     public static final Color SUCCESS = new Color(16, 185, 129);       // Emerald 500
     public static final Color DANGER = new Color(239, 68, 68);         // Red 500
+    
+    // Input Fields Constants
+    public static final Color INPUT_BG = new Color(30, 41, 59);        // Slate 800 (Dark Slate)
+    public static final Color INPUT_TEXT = Color.WHITE;
+    public static final Color INPUT_CARET = Color.WHITE;
 
     // Fonts
     public static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 22);
@@ -167,9 +172,11 @@ public class UIStyle {
         public ModernTextField(String text) {
             super(text);
             setFont(FONT_REGULAR);
-            setBackground(Color.WHITE);
-            setForeground(TEXT_PRIMARY);
-            setCaretColor(TEXT_PRIMARY);
+            setBackground(INPUT_BG);
+            setForeground(INPUT_TEXT);
+            setCaretColor(INPUT_CARET);
+            setSelectionColor(PRIMARY);
+            setSelectedTextColor(Color.WHITE);
             setOpaque(true);
             setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(BORDER, 8),
@@ -200,9 +207,11 @@ public class UIStyle {
         public ModernPasswordField() {
             super();
             setFont(FONT_REGULAR);
-            setBackground(Color.WHITE);
-            setForeground(TEXT_PRIMARY);
-            setCaretColor(TEXT_PRIMARY);
+            setBackground(INPUT_BG);
+            setForeground(INPUT_TEXT);
+            setCaretColor(INPUT_CARET);
+            setSelectionColor(PRIMARY);
+            setSelectedTextColor(Color.WHITE);
             setOpaque(true);
             setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(BORDER, 8),
@@ -318,6 +327,31 @@ public class UIStyle {
     public static void styleScrollPane(JScrollPane scrollPane) {
         scrollPane.setBorder(BorderFactory.createLineBorder(BORDER, 1, true));
         scrollPane.getViewport().setBackground(Color.WHITE);
+    }
+
+    // ComboBox styling helper
+    public static void styleComboBox(JComboBox<?> comboBox) {
+        comboBox.setFont(FONT_REGULAR);
+        comboBox.setBackground(INPUT_BG);
+        comboBox.setForeground(INPUT_TEXT);
+        comboBox.setBorder(BorderFactory.createLineBorder(BORDER, 1));
+        
+        // Customize dropdown list item renderer
+        comboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (isSelected) {
+                    c.setBackground(PRIMARY);
+                    c.setForeground(Color.WHITE);
+                } else {
+                    c.setBackground(INPUT_BG);
+                    c.setForeground(Color.WHITE);
+                }
+                setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+                return c;
+            }
+        });
     }
 
     // Vector Icon Classes

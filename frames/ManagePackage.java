@@ -51,7 +51,6 @@ public class ManagePackage extends JFrame {
 
         // --- Left Sidebar Form ---
         UIStyle.CardPanel formCard = new UIStyle.CardPanel();
-        formCard.setPreferredSize(new Dimension(320, 0));
         formCard.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 4, 4, 4);
@@ -89,9 +88,7 @@ public class ManagePackage extends JFrame {
         pCat.setOpaque(false);
         pCat.add(UIStyle.createFieldLabel("Category"), BorderLayout.NORTH);
         catBox = new JComboBox<>(new String[] { "Domestic", "International" });
-        catBox.setFont(UIStyle.FONT_REGULAR);
-        catBox.setBackground(Color.WHITE);
-        catBox.setBorder(BorderFactory.createLineBorder(UIStyle.BORDER, 1));
+        UIStyle.styleComboBox(catBox); // Style combobox with dark background and white text
         pCat.add(catBox, BorderLayout.CENTER);
         gbc.gridy = 3;
         formCard.add(pCat, gbc);
@@ -140,7 +137,16 @@ public class ManagePackage extends JFrame {
         gbc.anchor = GridBagConstraints.NORTH;
         formCard.add(addB, gbc);
 
-        bodyPanel.add(formCard, BorderLayout.WEST);
+        // Wrap Left Sidebar Form in JScrollPane to prevent disappearing on minimize/resize
+        JScrollPane formScroll = new JScrollPane(formCard);
+        formScroll.setBorder(null);
+        formScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        formScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        formScroll.setOpaque(false);
+        formScroll.getViewport().setOpaque(false);
+        formScroll.setPreferredSize(new Dimension(340, 0));
+
+        bodyPanel.add(formScroll, BorderLayout.WEST);
 
         // --- Right Workspace ---
         UIStyle.CardPanel tableCard = new UIStyle.CardPanel();
@@ -161,6 +167,22 @@ public class ManagePackage extends JFrame {
         // ================= Action Listeners =================
         addB.addActionListener(e -> {
             String id = idT.getText().trim();
+            
+            // Step 1: Check if Package ID already exists
+            boolean idExists = false;
+            ArrayList<TourPackage> allPackages = repo.getAllPackages();
+            for (TourPackage p : allPackages) {
+                if (p.getPackageId().equalsIgnoreCase(id)) {
+                    idExists = true;
+                    break;
+                }
+            }
+            if (idExists) {
+                JOptionPane.showMessageDialog(this, "Package ID already exists", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Step 2: Check all mandatory fields
             String dest = destT.getText().trim();
             String priceStr = prcT.getText().trim();
             String dur = durT.getText().trim();
@@ -180,13 +202,21 @@ public class ManagePackage extends JFrame {
                 return;
             }
             
+            // Step 3: Insert package successfully
             boolean success = repo.addPackage(new TourPackage(id, dest, catBox.getSelectedItem().toString(),
                     price, dur, hotelId, transId));
             if (success) {
                 JOptionPane.showMessageDialog(this, "Tour package added successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
                 refresh();
+                // Clear fields
+                idT.setText("");
+                destT.setText("");
+                prcT.setText("");
+                durT.setText("");
+                hIdT.setText("");
+                tIdT.setText("");
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to add package. ID might already exist.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to add package due to database error.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

@@ -21,6 +21,7 @@ public class LoginFrame extends JFrame {
         
         // Login Card
         UIStyle.CardPanel card = new UIStyle.CardPanel();
+        card.setBackground(UIStyle.SIDEBAR_BG); // Dark theme card
         card.setPreferredSize(new Dimension(340, 360));
         card.setLayout(new GridBagLayout());
         
@@ -30,13 +31,13 @@ public class LoginFrame extends JFrame {
         gbc.gridx = 0;
         
         // App Title
-        JLabel title = UIStyle.createLabel("TourEase", UIStyle.FONT_TITLE, UIStyle.PRIMARY);
+        JLabel title = UIStyle.createLabel("TourEase", UIStyle.FONT_TITLE, Color.WHITE);
         title.setHorizontalAlignment(SwingConstants.CENTER);
         gbc.gridy = 0;
         card.add(title, gbc);
         
         // Subtitle
-        JLabel subtitle = UIStyle.createLabel("Sign in to your account", UIStyle.FONT_LABEL, UIStyle.TEXT_MUTED);
+        JLabel subtitle = UIStyle.createLabel("Sign in to your account", UIStyle.FONT_LABEL, new Color(203, 213, 225));
         subtitle.setHorizontalAlignment(SwingConstants.CENTER);
         gbc.gridy = 1;
         card.add(subtitle, gbc);
@@ -44,7 +45,9 @@ public class LoginFrame extends JFrame {
         // User Label & Field
         JPanel userPanel = new JPanel(new BorderLayout(0, 4));
         userPanel.setOpaque(false);
-        userPanel.add(UIStyle.createFieldLabel("Username"), BorderLayout.NORTH);
+        JLabel userLbl = UIStyle.createFieldLabel("Username");
+        userLbl.setForeground(new Color(203, 213, 225)); // Light gray label
+        userPanel.add(userLbl, BorderLayout.NORTH);
         uTxt = new UIStyle.ModernTextField();
         userPanel.add(uTxt, BorderLayout.CENTER);
         gbc.gridy = 2;
@@ -54,7 +57,9 @@ public class LoginFrame extends JFrame {
         // Password Label & Field
         JPanel passPanel = new JPanel(new BorderLayout(0, 4));
         passPanel.setOpaque(false);
-        passPanel.add(UIStyle.createFieldLabel("Password"), BorderLayout.NORTH);
+        JLabel passLbl = UIStyle.createFieldLabel("Password");
+        passLbl.setForeground(new Color(203, 213, 225)); // Light gray label
+        passPanel.add(passLbl, BorderLayout.NORTH);
         pTxt = new UIStyle.ModernPasswordField();
         passPanel.add(pTxt, BorderLayout.CENTER);
         gbc.gridy = 3;
@@ -64,7 +69,7 @@ public class LoginFrame extends JFrame {
         // Show Password Checkbox
         JCheckBox showPass = new JCheckBox("Show Password");
         showPass.setFont(UIStyle.FONT_LABEL);
-        showPass.setForeground(UIStyle.TEXT_MUTED);
+        showPass.setForeground(Color.WHITE); // High contrast text color
         showPass.setOpaque(false);
         showPass.setFocusPainted(false);
         showPass.setCursor(new Cursor(Cursor.HAND_CURSOR));

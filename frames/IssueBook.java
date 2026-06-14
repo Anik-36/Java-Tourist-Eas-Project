@@ -3,6 +3,7 @@ package frames;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.*;
 import entity.Booking;
 import entity.User;
 import repository.BookingRepo;
@@ -19,6 +20,7 @@ public class IssueBook extends JFrame {
         this.setSize(1000, 640);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
+        this.setResizable(true);
 
         // Frame Layout
         this.getContentPane().setBackground(UIStyle.BACKGROUND);
@@ -47,7 +49,6 @@ public class IssueBook extends JFrame {
 
         // --- Left Sidebar Form ---
         UIStyle.CardPanel formCard = new UIStyle.CardPanel();
-        formCard.setPreferredSize(new Dimension(320, 0));
         formCard.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 4, 4, 4);
@@ -119,7 +120,7 @@ public class IssueBook extends JFrame {
         // Buttons Panel (Save and Cancel)
         JPanel actionPanel = new JPanel(new GridLayout(2, 1, 0, 10));
         actionPanel.setOpaque(false);
-        actionPanel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+        actionPanel.setPreferredSize(new Dimension(280, 100)); // Enlarge the button dimensions explicitly
 
         UIStyle.ModernButton confirm = new UIStyle.ModernButton("Execute Transaction");
         UIStyle.SecondaryButton cancel = new UIStyle.SecondaryButton("Cancel");
@@ -132,7 +133,16 @@ public class IssueBook extends JFrame {
         gbc.anchor = GridBagConstraints.NORTH;
         formCard.add(actionPanel, gbc);
 
-        bodyPanel.add(formCard, BorderLayout.WEST);
+        // Wrap Left Sidebar Form in JScrollPane to prevent disappearing on minimize/resize
+        JScrollPane formScroll = new JScrollPane(formCard);
+        formScroll.setBorder(null);
+        formScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        formScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        formScroll.setOpaque(false);
+        formScroll.getViewport().setOpaque(false);
+        formScroll.setPreferredSize(new Dimension(340, 0));
+
+        bodyPanel.add(formScroll, BorderLayout.WEST);
 
         // --- Right Workspace (Table Display) ---
         UIStyle.CardPanel tableCard = new UIStyle.CardPanel();
@@ -164,6 +174,23 @@ public class IssueBook extends JFrame {
                 return;
             }
 
+            // DB Lookups to check if IDs exist
+            boolean cExists = customerExists(cId);
+            boolean pExists = packageExists(pId);
+
+            if (!cExists && !pExists) {
+                JOptionPane.showMessageDialog(this, "Customer ID and Package ID not found.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!cExists) {
+                JOptionPane.showMessageDialog(this, "Customer not found.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!pExists) {
+                JOptionPane.showMessageDialog(this, "Package not found.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             double amt;
             try {
                 amt = Double.parseDouble(amtStr);
@@ -179,7 +206,7 @@ public class IssueBook extends JFrame {
                 new Home(user).setVisible(true);
                 this.dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "Transaction Aborted - Check IDs", "Transaction Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Transaction Aborted due to database error.", "Transaction Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -194,6 +221,32 @@ public class IssueBook extends JFrame {
         });
 
         refresh();
+    }
+
+    private boolean customerExists(String customerId) {
+        String sql = "SELECT 1 FROM customers WHERE customerId = ?";
+        try (Connection conn = repository.DatabaseConnection.getConnection(); PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, customerId);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean packageExists(String packageId) {
+        String sql = "SELECT 1 FROM packages WHERE packageId = ?";
+        try (Connection conn = repository.DatabaseConnection.getConnection(); PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, packageId);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private void refresh() {
