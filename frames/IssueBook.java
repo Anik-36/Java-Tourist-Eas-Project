@@ -1,78 +1,206 @@
 package frames;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import entity.Booking;
 import entity.User;
 import repository.BookingRepo;
+import java.util.ArrayList;
 
 public class IssueBook extends JFrame {
-    private JTextField bIdT, cIdT, pIdT, dateT, amtT, modeT;
+    private UIStyle.ModernTextField bIdT, cIdT, pIdT, dateT, amtT, modeT;
+    private JTable table;
+    private DefaultTableModel model;
+    private BookingRepo repo = new BookingRepo();
 
     public IssueBook(User user) {
         super("TourEase - New Settlement Terminal");
-        this.setSize(360, 360);
-        this.setLayout(null);
+        this.setSize(1000, 640);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
 
-        JLabel l1 = new JLabel("Booking ID:");
-        l1.setBounds(30, 20, 100, 20);
-        this.add(l1);
-        bIdT = new JTextField("BK-" + System.currentTimeMillis() % 10000);
-        bIdT.setBounds(140, 20, 160, 20);
-        this.add(bIdT);
-        JLabel l2 = new JLabel("Client ID:");
-        l2.setBounds(30, 50, 100, 20);
-        this.add(l2);
-        cIdT = new JTextField();
-        cIdT.setBounds(140, 50, 160, 20);
-        this.add(cIdT);
-        JLabel l3 = new JLabel("Package ID:");
-        l3.setBounds(30, 80, 100, 20);
-        this.add(l3);
-        pIdT = new JTextField();
-        pIdT.setBounds(140, 80, 160, 20);
-        this.add(pIdT);
-        JLabel l4 = new JLabel("Date (YYYY-MM-DD):");
-        l4.setBounds(30, 110, 130, 20);
-        this.add(l4);
-        dateT = new JTextField("2026-06-09");
-        dateT.setBounds(140, 110, 160, 20);
-        this.add(dateT);
-        JLabel l5 = new JLabel("Pay Amount:");
-        l5.setBounds(30, 140, 100, 20);
-        this.add(l5);
-        amtT = new JTextField();
-        amtT.setBounds(140, 140, 160, 20);
-        this.add(amtT);
-        JLabel l6 = new JLabel("Pay Method:");
-        l6.setBounds(30, 170, 100, 20);
-        this.add(l6);
-        modeT = new JTextField("Cash");
-        modeT.setBounds(140, 170, 160, 20);
-        this.add(modeT);
+        // Frame Layout
+        this.getContentPane().setBackground(UIStyle.BACKGROUND);
+        this.setLayout(new BorderLayout());
 
-        JButton confirm = new JButton("Execute Transaction");
-        confirm.setBounds(30, 210, 270, 35);
-        this.add(confirm);
-        JButton back = new JButton("Cancel");
-        back.setBounds(30, 255, 270, 30);
-        this.add(back);
+        // ================= Top Navigation Header =================
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(UIStyle.CARD_BG);
+        headerPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, UIStyle.BORDER),
+            BorderFactory.createEmptyBorder(16, 24, 16, 24)
+        ));
 
+        JLabel titleLabel = UIStyle.createLabel("Booking Settlement Terminal", UIStyle.FONT_TITLE, UIStyle.PRIMARY);
+        titleLabel.setIcon(new UIStyle.BookingIcon(22, UIStyle.PRIMARY));
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+
+        UIStyle.SecondaryButton back = new UIStyle.SecondaryButton("Back to Dashboard", new UIStyle.BackIcon(16, UIStyle.TEXT_PRIMARY));
+        headerPanel.add(back, BorderLayout.EAST);
+        this.add(headerPanel, BorderLayout.NORTH);
+
+        // ================= Main Body Panel =================
+        JPanel bodyPanel = new JPanel(new BorderLayout(24, 0));
+        bodyPanel.setOpaque(false);
+        bodyPanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+
+        // --- Left Sidebar Form ---
+        UIStyle.CardPanel formCard = new UIStyle.CardPanel();
+        formCard.setPreferredSize(new Dimension(320, 0));
+        formCard.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
+        gbc.weightx = 1.0;
+
+        JLabel formTitle = UIStyle.createLabel("Transaction Settlement", UIStyle.FONT_SUBTITLE, UIStyle.TEXT_PRIMARY);
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 4, 12, 4);
+        formCard.add(formTitle, gbc);
+
+        gbc.insets = new Insets(4, 4, 4, 4);
+
+        // Booking ID
+        JPanel pBid = new JPanel(new BorderLayout(0, 2));
+        pBid.setOpaque(false);
+        pBid.add(UIStyle.createFieldLabel("Booking ID"), BorderLayout.NORTH);
+        bIdT = new UIStyle.ModernTextField("BK-" + System.currentTimeMillis() % 10000);
+        pBid.add(bIdT, BorderLayout.CENTER);
+        gbc.gridy = 1;
+        formCard.add(pBid, gbc);
+
+        // Client ID
+        JPanel pCid = new JPanel(new BorderLayout(0, 2));
+        pCid.setOpaque(false);
+        pCid.add(UIStyle.createFieldLabel("Client ID"), BorderLayout.NORTH);
+        cIdT = new UIStyle.ModernTextField();
+        pCid.add(cIdT, BorderLayout.CENTER);
+        gbc.gridy = 2;
+        formCard.add(pCid, gbc);
+
+        // Package ID
+        JPanel pPid = new JPanel(new BorderLayout(0, 2));
+        pPid.setOpaque(false);
+        pPid.add(UIStyle.createFieldLabel("Package ID"), BorderLayout.NORTH);
+        pIdT = new UIStyle.ModernTextField();
+        pPid.add(pIdT, BorderLayout.CENTER);
+        gbc.gridy = 3;
+        formCard.add(pPid, gbc);
+
+        // Date
+        JPanel pDate = new JPanel(new BorderLayout(0, 2));
+        pDate.setOpaque(false);
+        pDate.add(UIStyle.createFieldLabel("Date (YYYY-MM-DD)"), BorderLayout.NORTH);
+        dateT = new UIStyle.ModernTextField("2026-06-09");
+        pDate.add(dateT, BorderLayout.CENTER);
+        gbc.gridy = 4;
+        formCard.add(pDate, gbc);
+
+        // Pay Amount
+        JPanel pAmt = new JPanel(new BorderLayout(0, 2));
+        pAmt.setOpaque(false);
+        pAmt.add(UIStyle.createFieldLabel("Payment Amount (BDT)"), BorderLayout.NORTH);
+        amtT = new UIStyle.ModernTextField();
+        pAmt.add(amtT, BorderLayout.CENTER);
+        gbc.gridy = 5;
+        formCard.add(pAmt, gbc);
+
+        // Pay Method
+        JPanel pMode = new JPanel(new BorderLayout(0, 2));
+        pMode.setOpaque(false);
+        pMode.add(UIStyle.createFieldLabel("Payment Method"), BorderLayout.NORTH);
+        modeT = new UIStyle.ModernTextField("Cash");
+        pMode.add(modeT, BorderLayout.CENTER);
+        gbc.gridy = 6;
+        formCard.add(pMode, gbc);
+
+        // Buttons Panel (Save and Cancel)
+        JPanel actionPanel = new JPanel(new GridLayout(2, 1, 0, 10));
+        actionPanel.setOpaque(false);
+        actionPanel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+
+        UIStyle.ModernButton confirm = new UIStyle.ModernButton("Execute Transaction");
+        UIStyle.SecondaryButton cancel = new UIStyle.SecondaryButton("Cancel");
+        actionPanel.add(confirm);
+        actionPanel.add(cancel);
+
+        gbc.gridy = 7;
+        gbc.insets = new Insets(16, 4, 4, 4);
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.NORTH;
+        formCard.add(actionPanel, gbc);
+
+        bodyPanel.add(formCard, BorderLayout.WEST);
+
+        // --- Right Workspace (Table Display) ---
+        UIStyle.CardPanel tableCard = new UIStyle.CardPanel();
+        tableCard.setLayout(new BorderLayout());
+        tableCard.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        model = new DefaultTableModel(new String[] { "Booking ID", "Client Name", "Destination", "Date", "Amount (BDT)", "Status" }, 0);
+        table = new JTable(model);
+        UIStyle.styleTable(table);
+
+        JScrollPane sp = new JScrollPane(table);
+        UIStyle.styleScrollPane(sp);
+        tableCard.add(sp, BorderLayout.CENTER);
+
+        bodyPanel.add(tableCard, BorderLayout.CENTER);
+        this.add(bodyPanel, BorderLayout.CENTER);
+
+        // ================= Action Listeners =================
         confirm.addActionListener(e -> {
-            Booking b = new Booking(bIdT.getText(), cIdT.getText(), pIdT.getText(), dateT.getText(), "Confirmed");
-            boolean success = new BookingRepo().createBooking(b, Double.parseDouble(amtT.getText()), modeT.getText());
+            String bId = bIdT.getText().trim();
+            String cId = cIdT.getText().trim();
+            String pId = pIdT.getText().trim();
+            String date = dateT.getText().trim();
+            String amtStr = amtT.getText().trim();
+            String mode = modeT.getText().trim();
+
+            if (bId.isEmpty() || cId.isEmpty() || pId.isEmpty() || date.isEmpty() || amtStr.isEmpty() || mode.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            double amt;
+            try {
+                amt = Double.parseDouble(amtStr);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Payment Amount must be a valid number.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Booking b = new Booking(bId, cId, pId, date, "Confirmed");
+            boolean success = repo.createBooking(b, amt, mode);
             if (success) {
-                JOptionPane.showMessageDialog(this, "Receipt Generated Successfully");
+                JOptionPane.showMessageDialog(this, "Receipt Generated Successfully", "Transaction Success", JOptionPane.INFORMATION_MESSAGE);
                 new Home(user).setVisible(true);
                 this.dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "Transaction Aborted - Check IDs");
+                JOptionPane.showMessageDialog(this, "Transaction Aborted - Check IDs", "Transaction Error", JOptionPane.ERROR_MESSAGE);
             }
         });
+
         back.addActionListener(e -> {
             new Home(user).setVisible(true);
             this.dispose();
         });
+
+        cancel.addActionListener(e -> {
+            new Home(user).setVisible(true);
+            this.dispose();
+        });
+
+        refresh();
+    }
+
+    private void refresh() {
+        model.setRowCount(0);
+        ArrayList<Object[]> report = repo.getBookingReport();
+        for (Object[] row : report) {
+            model.addRow(row);
+        }
     }
 }

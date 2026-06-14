@@ -8,7 +8,8 @@ import java.util.ArrayList;
 public class CustomerRepo implements ICustomerRepo {
     public boolean addCustomer(Customer c) {
         String sql = "INSERT INTO customers VALUES (?,?,?,?,?)";
-        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pst = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, c.getCustomerId());
             pst.setString(2, c.getName());
             pst.setString(3, c.getPhone());
